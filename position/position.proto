@@ -1,0 +1,34 @@
+syntax = "proto2";
+
+package RoadPB;
+import "metadata/metadata.proto";
+import "common/common.proto";
+
+option java_package = "com.lixiang.hdmap.proto"; 
+option java_outer_classname = "position";
+
+message PositionObject {
+    optional FeatureID id   = 1;
+    optional Polygon border = 2;
+    optional Circle circle = 3;
+    optional Cylinder pole = 4;
+
+    enum ObjectType {
+        UNKNOWN = 0;
+        POLE = 1;
+        SIGN = 2;
+        GANTRY = 3;
+        OVERPASS = 4;
+        OVERHEAD = 5;
+        TRAFFIC_LIGHT = 6;
+        LANE_MARKING = 7;
+        STOP_LINE = 8;
+        SPEED_BUMP = 9;
+        CROSS_WALK = 10;
+        BOARD = 11;
+        PARKING_SLOT = 12;
+    }
+    optional int32 type = 5;  //ObjectType
+    optional string content = 6;
+    repeated FeatureID lane_groups = 7;  //所属LaneGroup
+}

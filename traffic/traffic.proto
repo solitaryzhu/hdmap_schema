@@ -1,0 +1,242 @@
+syntax = "proto2";
+
+package RoadPB;
+import "metadata/metadata.proto";
+import "common/common.proto";
+
+option java_package = "com.lixiang.hdmap.proto"; 
+option java_outer_classname = "traffic";
+
+message TrafficCondition {
+    enum ConditionType {
+        NUMERIC = 0;
+        VEHICLE = 1;
+        LOAD = 2;
+        TIME_OF_DAY = 3;
+        WEATHER = 4;
+        FUZZY_TIME = 5;
+        TURN_DIRECTION = 6;
+    }
+
+    optional int32 type = 1;
+    optional int32 value = 2; //for type NUMERIC
+    optional int32 vehicle_type_mask = 3; //for type VEHICLE
+
+    enum LoadType {
+        WATER_POLLUTING = 1;
+        EXPLOSIVE = 2;
+        OTHER_DANGEROUS = 3;
+        EMPTY = 4;
+        SPECIAL = 5;
+        GASSES = 6;
+        FLAMMABLE_LIQUIDS = 7;
+        FLAMMABLE_SOLIDS = 8;
+        OXIDIZING = 9;
+        TOXIC_INFECTIOUS = 10;
+        RADIO_ACTIVE = 11;
+        CORROSIVE = 12;
+    }
+    optional int32 load_type = 4; //for type LOAD
+
+    optional int32 start_minues = 5; //for type TIME_OF_DAY
+    optional int32 end_minues = 6; //for type TIME_OF_DAY
+
+    enum Weather {
+        UNKNOWN  = 0;
+        NO_SPECIAL = 1;
+        SUNSHINE = 2;
+        RAIN = 3;
+        FOG = 4;
+        SNOW = 5;
+        ICE = 6;
+        STRONG_WIND = 7;
+    }
+    optional int32 weather = 7; //for type WEATHER
+
+    enum FuzzyTime {
+        TIME_UNKNOWN = 1;
+        TIME_DAY = 2;
+        TIME_NIGHT = 3;
+    }
+    optional int32 fuzzy_time = 8; //for type FUZZY_TIME
+
+    enum TurnDirection {
+        NONE = 0;
+        STRAIGHT = 1;
+        SLIGHT_RIGHT = 2;
+        RIGHT = 4;
+        HARD_RIGHT = 8;
+        UTURN = 16;
+        HARD_LEFT = 32;
+        LEFT = 64;
+        SLIGHT_LEFT = 128;
+        NA = -1;
+    }
+    optional int32 direction = 9; //for type TURN_DIRECTION
+}
+
+message TrafficSign {
+    enum SignType {
+        UNKNOWN = 0;
+        STOP_FOR = 1;
+        SLOW_FOR = 2;
+        GIVE_WAY = 3;
+        NOWAY = 4;
+        NO_ENTRY = 5;
+        NO_PARKING = 6;
+        NO_LONG_PARKING = 7;
+        PARKING_CHECK = 8;
+        NO_MOTOR = 9;
+        SPEED_LIMIT_HIGH = 10;
+        SPEED_LIMIT_LOW = 11;
+        SPEED_LIMIT_REMOVED = 12;
+    }
+
+    enum Shape {
+        UNKNOWN_SHAPE    = 0;  //未调查
+        RECTANGLE        = 1;  //矩形
+        TRIANGLE         = 2;  //三角
+        CIRCLE           = 3;  //圆形
+        DIAMOND          = 4;  //菱形
+        HEXAGON          = 5;  //六边形
+        OCTAGON          = 6;  //八角形
+        FURCATION        = 7;  
+        COMBINATION      = 8;
+        OTHER_SHAPE      = 99;  //其他形状
+    }
+
+    enum Color {
+        UNKNOWN_COLOR = 0;
+        OTHER_COLOR   = 1;
+        WHITE         = 2;
+        YELLOW        = 3;
+        RED           = 4;
+        GREEN         = 5;
+        BLUE          = 6;
+        BLACK         = 7;
+        BROWN         = 8;
+        COLORFUL      = 9;
+    }
+
+    optional int32 type = 3;  //SignType
+    optional int32 shape = 4; //Shape
+    //optional int32 color = 5; //Color
+    optional float value = 6;
+    optional string content = 7;
+    optional bool variable = 8;
+    repeated TrafficCondition panels = 9;
+}
+
+message TrafficLight {
+    enum LightType {
+        NONE = 0;
+        ROUND = 1;
+        CROSS = 2;
+        PEDESTRIAN = 3;
+        BICYCLE = 4;
+        ARROW = 5;
+        TIME = 6;
+    }
+
+    enum BulbColor {
+        UNKNOWN = 0;
+        RED = 1;
+        YELLOW = 2;
+        GREEN = 3;
+        WHITE = 4;
+    }
+
+    enum BulbShape {
+        UNKNOWN_SHARP = 0;
+        CIRCLE = 1;
+        LEFT_ARROW = 2;
+        RIGHT_ARROW = 3;
+        UP_ARROW = 4;
+        DOWN_ARROW = 5;
+        UTURN = 6;
+        FORWARD_AND_LEFT = 7;
+        FORWARD_AND_RIGHT = 8;
+    }
+
+    message LightBulb {
+        optional int32 color = 1; //BulbColor
+        optional int32 shape = 2; //BuldShape
+        optional Circle border = 3;
+    }
+
+    optional int32 type = 1; //LightType
+    repeated LightBulb bulbs = 2;
+    optional int32 arrange = 4;  //0-未调查 1-水平 2-垂直 3-点
+    optional int32 usage_obj  = 8;  //应用对象 0-未调查 1-机动车 2-非机动车 3-人行 4-骑行 5-混合
+    /*0-路口红绿灯 1-reversed  2-收费站指示灯 3-穿越人行道 4-穿越自行车道 5-隧道指示灯 
+      6-桥梁指示灯 7-车道控制灯  8-铁道穿越指示灯 9-警示灯*/
+    optional int32 usage_type = 9;
+}
+
+//同方向TrafficLight并且有协作关系时组合成为TrafficLightGroup
+message TrafficLightGroup {
+    repeated FeatureID lights = 2;
+}
+
+message LaneMarking {    
+    enum MarkingType {
+        ARROW_UNKNOWN = 0;
+        ARROW_LEFT = 1;
+        ARROW_FORWARD = 2;
+        ARROW_RIGHT = 3;
+        ARROW_LEFT_AND_FORWARD = 4;
+        ARROW_RIGHT_AND_FORWARD = 5;
+        ARROW_LEFT_AND_RIGHT = 6;
+        ARROW_U_TURN = 7;
+        ARROW_U_TURN_AND_FORWARD = 8;
+        ARROW_U_TURN_AND_LEFT = 9;
+        ARROW_MERGE_LEFT = 10;
+        ARROW_MERGE_RIGHT = 11;
+        CROSSWALK_NOTICE = 12;
+        SPEED_LIMIT_LOW = 13;
+        SPEED_LIMIT_HIGH = 14;
+        ARROW_NO_LEFT_TURN = 15;
+        ARROW_NO_RIGHT_TURN = 16;
+        ARROW_NO_U_TURN = 17;
+        ARROW_FORWARD_AND_LEFT_AND_RIGHT = 18;
+        ARROW_FORWARD_AND_U_TURN_AND_LEFT = 19;
+        ARROW_RIGHT_AND_U_TURN = 20;
+        MARKING_TEXT = 21;
+        MARKING_TIME = 22;
+        CHECK_FOLLOWING_DISTANCE = 23;
+        STOPTO_GIVE_WAY = 24;
+        SLOWDOWN_TO_GIVE_WAY = 25;
+        MARKING_STOP = 26;
+        MARKING_NETS = 27;
+    }
+    optional int32 type = 1;
+    optional float value = 6;
+    optional string content = 7;
+}
+
+message SpeedBump {
+    optional float height = 1;
+    optional float speed_limit = 2;
+}
+
+message TrafficInfo {
+    optional FeatureID id = 1;
+    repeated FeatureID objs = 2;
+
+    enum InfoType {
+        SIGN = 1;
+        LIGHT = 2;
+        LIGHT_GROUP = 3;
+        LANE_MARK = 4;
+        SPEED_BUMP = 5;
+    }
+    optional int32 type = 3;
+    optional FeatureID lanes = 4;
+    optional FeatureID lanegroups = 5;
+
+    optional TrafficSign sign = 6;
+    optional TrafficLight light = 7;
+    optional TrafficLightGroup light_group = 8;
+    optional LaneMarking marking = 9;
+    optional SpeedBump bump = 10;
+}
