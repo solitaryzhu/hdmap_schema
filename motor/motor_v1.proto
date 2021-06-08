@@ -1,0 +1,209 @@
+syntax = "proto3";
+
+message Point3D {
+    double x = 1;
+    double y = 2;
+    double z = 3;
+};
+
+message AdvancePoint3D {
+    Point3D point = 1;
+    double slope = 2;
+    double curve = 3;
+};
+
+message LaneConnectivity {
+    int64 laneGroupId = 1;
+    int32 laneSeqNum = 2;
+};
+
+message LaneBoundary {
+    enum BoundaryType {
+        UNKNOWN_BOUNDARY = 0;
+        LANELINE = 1;
+        CURB = 2;
+        //CENTER = 3;
+        GUARDRAIL = 4;
+        CONCRETE_BARRIER = 5;
+        FENCE = 6;
+        WALL = 7;
+        CANOPY = 8;
+        VIRTUAL = 9;
+    }
+    enum BoundaryColor {
+        UNKNOWN_COLOR = 0;
+        WHITE = 1;
+        YELLOW = 2;
+        ORANGE = 3;
+        BLUE = 4;
+        GREEN = 5;
+        GRAY = 6;
+        LEFT_GRAY_RIGHT_YELLOW = 7;
+        LEFT_YELLOW_RIGHT_WHITE = 8;
+    }
+    enum MarkingType {
+        UNKNOWN = 0;
+        SOLID = 1;
+        DASHED = 2;
+        SHORT_DASHED = 3;
+        DOUBLE_SOLID = 4;
+        DOUBLE_DASHED = 5;
+        LEFT_SOLID_RIGHT_DASHED = 6;
+        LEFT_DASHED_RIGHT_SOLID = 7;
+        SHADED_AREA = 8;
+        VIRTUAL_LANE = 9;
+        VIRTUAL_JUNCTION = 10;
+        VIRTUAL_CURB = 11;
+        UNCLOSED_ROAD = 12;
+        VIRTUAL_ROAD = 13;
+        OTHER = 99;
+    }
+    BoundaryType type = 1;
+    BoundaryColor color = 2;
+    MarkingType marking = 3;
+    repeated Point3D points = 4;
+};
+
+message Lane {
+    enum LaneType {
+        NORMAL_LANE = 0;
+        ENTRY_LANE = 1;
+        EXIT_LANE = 2;
+        ACC_LANE = 3;//加速车道
+        DEC_LANE = 4;//减速车道
+    };
+    int32 seqNum = 1;
+    LaneType type = 2;
+    LaneBoundary leftBound = 3;
+    LaneBoundary rightBound = 4;
+    repeated LaneConnectivity succs = 5;
+    repeated LaneConnectivity preds = 6;
+    repeated AdvancePoint3D driveLinePoints = 7;
+    double width = 8;
+};
+
+message LaneGroupBoundary {
+    enum BoundaryType {
+        UNKNOWN_BOUNDARY = 0;
+        LANELINE = 1;
+        CURB = 2;
+        //CENTER = 3;
+        GUARDRAIL = 4;
+        CONCRETE_BARRIER = 5;
+        FENCE = 6;
+        WALL = 7;
+        CANOPY = 8;
+        VIRTUAL = 9;
+    }
+    BoundaryType type = 1;
+    repeated Point3D points = 2;
+};
+
+message LaneGroup {
+    int64 id = 1;
+    int64 linkId = 2;
+    /*可以多值
+    0-未调查
+    1-其他
+    2-车道数固定区域
+    3-车道数左侧增加区域
+    4-车道数右侧增加区域
+    5-车道数左右侧增加区域
+    6-车道数左侧减少区域
+    7-车道数右侧减少区域
+    8-车道数左右侧减少区域
+    9-车道数左增右减区域
+    10-车道数左减右增区域
+    11-分歧直行路口区间
+    12-合流直行路口区间
+    13-右侧分歧路口区间
+    14-左侧分歧路口区间
+    15-右侧合流路口区间
+    16-左侧合流路口区间
+    17-交叉路口直行区间
+    18-交叉路口右转区间
+    19-交叉路口左转区间
+    20-交叉路口掉头区间
+    21-收费站驶入区间
+    22-收费站通道区间
+    23-收费站驶出区间*/
+    repeated int32 types = 3;
+    repeated Lane lanes = 4;
+    repeated int64 succs = 5;
+    repeated int64 preds = 6;
+    LaneGroupBoundary leftBound = 7;
+    LaneGroupBoundary rightBound = 8;
+};
+
+message ImpassableArea {
+    repeated Point3D points = 1;
+    int32 type = 2; //0-未调查 1-不可通行区域 2-建议不通行区域
+    int32 kind = 3; //0-未调查 1-安全岛屿 3-自行车道 4-人行横道
+};
+
+message Intersection {
+    int64 id = 1;
+    repeated Point3D points = 3;
+    repeated int64 in_groups = 4;
+    repeated int64 out_groups = 5;
+    repeated int64 conn_groups = 6;
+    repeated ImpassableArea areas = 7;
+};
+
+message Link {
+    int64 id = 1;
+    double length = 2;
+    repeated Point3D points = 3;
+    int32 roadClass = 4;
+    enum LinkType {
+        NO_SPECIAL             = 0x0;
+        RAMP                   = 0x1;
+        ROUNDABOUT             = 0X2;
+        PARALLEL               = 0X3;
+        SERVICE_ROAD           = 0X4;
+        MAIN_ROAD              = 0X5;
+        SQUARE                 = 0X6;
+        PEDESTRIAN_ZONE        = 0X7;
+        ROUNDABOUT_INTERIOR    = 0XA;
+        SLIP_ROAD              = 0XB;
+        SPECIAL_TRAFFIC_FIGURE = 0XC;
+        BOUNDARY               = 0XD;
+    };
+    LinkType linkType = 5;
+    enum Direction {
+        IN_NO_DIRECTION       = 0;
+        IN_POSITIVE_DIRECTION = 1;
+        IN_NEGATIVE_DIRECTION = 2;
+        IN_BOTH_DIRECTION     = 3;
+    };
+    Direction direction = 6;
+    repeated int64 forwardGroupIds = 10;
+    repeated int64 backwardGroupIds = 11;
+}
+
+message ExtLinkReference {
+    int32 extTileId = 1; 
+    int64 linkId = 2;
+}
+
+message IntOrExtLinkReference {
+    int64 intLinkId = 1;
+    ExtLinkReference extLinkId = 2;
+}
+
+message Node {
+    int64 id = 1;
+    Point3D point = 2;
+    repeated IntOrExtLinkReference inLinks = 3;
+    repeated IntOrExtLinkReference outLinks = 4;
+    int64 intersectionId = 5;
+}
+
+message RoutingTile {
+    int32 id = 1;
+    repeated Link links = 2;
+    repeated Node nodes = 3;
+    repeated LaneGroup laneGroups = 4;
+    repeated Intersection junctions = 5;
+    repeated int32 extTileIds = 10;
+};
